@@ -10,7 +10,7 @@
     <AssemblyTitle>$(Title)</AssemblyTitle>
     <Product>$(Title)</Product>
     <Copyright>Copyright © 2026 BeyondBackyard</Copyright>
-    <Company>BeyondBackyard</Company>
+    <Company>Phil Aichinger</Company>
     <Authors>Phil Aichinger</Authors>
     <Description>Monitor your NINA observatory from your phone: live telemetry, smart alerts, sub grading and AI night reports.</Description>
     <PluginLongDescription></PluginLongDescription>

@@ -1,0 +1,44 @@
+{
+    "Name": "The Night Manager",
+    "Identifier": "565D34C2-73CD-436B-8735-E2E9F98E8AFC",
+    "Version": {
+        "Major": "2",
+        "Minor": "1",
+        "Patch": "0",
+        "Build": "0"
+    },
+    "Author": "Phil Aichinger",
+    "Homepage": "https://www.ninanightagent.com",
+    "Repository": "https://github.com/phillippeaichinger-cyber/the-night-manager",
+    "License": "MPL-2.0",
+    "LicenseURL": "https://www.mozilla.org/en-US/MPL/2.0/",
+    "ChangelogURL": "https://github.com/phillippeaichinger-cyber/the-night-manager/blob/main/CHANGELOG.md",
+    "Tags": [
+        "monitoring",
+        "mobile",
+        "notifications",
+        "remote",
+        "alerts",
+        "android",
+        "iphone"
+    ],
+    "MinimumApplicationVersion": {
+        "Major": "3",
+        "Minor": "2",
+        "Patch": "0",
+        "Build": "9001"
+    },
+    "Descriptions": {
+        "ShortDescription": "Monitor your NINA observatory from your phone: live telemetry, smart alerts, sub grading and AI night reports.",
+        "LongDescription": "The Night Manager puts your NINA observatory on your phone (iPhone and Android): every sub as it lands with a small preview, its HFR, star count and a grade; the guiding graph; NINA's status and the sequence's progress; and alerts only when something actually needs you (guiding lost, unsafe conditions, the sequence stopping, the camera not reaching temperature, clouds, focus drift, dew). In the morning there's a summary of the night and why any subs were soft.\n\n## How it works\nThis plugin is the open-source NINA side. It reads NINA's state through the plugin API and sends it to The Night Manager service, which relays it to the app. It needs the free app and an account: pair from *Options → The Night Manager*, then enter the code in the app or on the pairing page in any browser.\n\n- Works with the Advanced and classic sequencers, Target Scheduler, PHD2 and Hocus Focus.\n- Sequence instructions: Notify my phone, Ask my phone, Wait for go, Wake me up, Send latest image, Note to timeline, Night ending and Send night report.\n- Remote actions (pause, abort, park, close the dome, warm the camera, safe shutdown) are off until you allow them in the options. Each must be confirmed on the phone, and NINA carries it out the normal way.\n- Your FITS/XISF files never leave the PC: only small previews and the numbers are sent. On the same home Wi-Fi, the phone can get live data straight from the PC.\n- A cull list (grades and rejects) is written next to your images at the end of the night. Nothing is ever deleted or moved.\n\n## Startup helper (optional)\nThe package includes `Launcher/NightManager.Launcher.exe`. It's off until you turn it on in the options. When on, it's registered at Windows logon and reopens NINA after a power cut or restart, with the plan you chose in the app. Turning it off removes the registration.\n\n## Free and Pro\nThe plugin is free. The app is free for one rig: live view, every alert (safety ones included), the remote actions and a few AI night reports a month. An optional Pro subscription adds several rigs and sites in one app, sharing, coaching and nightly reports, and pays for running the service for everyone. NINA's own functions, and data from other free plugins such as Target Scheduler, are never behind the paywall.\n\n## Privacy\nSent: equipment state, events, frame numbers, optional small previews and file names. Never sent: images or full paths. During the beta, anonymous focus and optics measurements help build new features; switch them off under *Data and privacy*. Privacy policy: https://www.ninanightagent.com/privacy\n\n## Help\nGuide: https://www.ninanightagent.com/guide · Questions and bug reports: the Night Manager Discord (https://discord.gg/yz2RNBPYYk), with NINA's log. This plugin is not supported by the N.I.N.A. team.\n\nDeveloped with AI assistance (Anthropic's Claude), directed and maintained by Phil Aichinger. Source: https://github.com/phillippeaichinger-cyber/the-night-manager (MPL-2.0).",
+        "FeaturedImageURL": "https://raw.githubusercontent.com/phillippeaichinger-cyber/the-night-manager/main/assets/logo.png",
+        "ScreenshotURL": "https://raw.githubusercontent.com/phillippeaichinger-cyber/the-night-manager/main/assets/screenshot-1.png",
+        "AltScreenshotURL": "https://raw.githubusercontent.com/phillippeaichinger-cyber/the-night-manager/main/assets/screenshot-2.png"
+    },
+    "Installer": {
+        "URL": "https://github.com/phillippeaichinger-cyber/the-night-manager/releases/download/v2.1.0-7bd03b0/NightManager-2.1.0-NINA3.2-manager.zip",
+        "Type": "ARCHIVE",
+        "Checksum": "829B3F8A8CC05DDFC99E135AEB07E16F3CCE4AD766341E689197FA453F2A4F7E",
+        "ChecksumType": "SHA256"
+    }
+}
