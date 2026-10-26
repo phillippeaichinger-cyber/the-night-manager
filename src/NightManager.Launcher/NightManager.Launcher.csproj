@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The Night Manager Launcher: runs once when Windows logs on and starts NINA with the startup plan saved in the app.
+    Shipped in the plugin's "Launcher" subfolder (NINA only loads DLLs from a plugin's top folder) and copied by the
+    plugin to %LOCALAPPDATA%\NINA\NightManager\launcher when switched on. Always .NET 8, rolling forward, so the same
+    program runs next to NINA 3.2 (.NET 8) and 3.3 (.NET 10).
+  -->
+  <Import Project="../../Plugin.props" />
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>false</UseWPF>
+    <Nullable>enable</Nullable>
+    <RootNamespace>NightManager.Launcher</RootNamespace>
+    <AssemblyName>NightManager.Launcher</AssemblyName>
+    <RollForward>Major</RollForward>
+    <!-- A Windows NightManager.Launcher.exe even when built on Linux; framework-dependent, so NINA's .NET runs it. -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyTitle>The Night Manager Launcher</AssemblyTitle>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NightManager.Core/NightManager.Core.csproj" />
+  </ItemGroup>
+</Project>

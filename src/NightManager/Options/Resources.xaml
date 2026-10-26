@@ -1,0 +1,1419 @@
+<ResourceDictionary x:Class="NightManager.Plugin.Options.Resources"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:NightManager.Plugin.Options">
+
+    <!--
+        The Night Manager's options page as a dashboard: a header with the live status and the master switch, then pages
+        in a rail on the left (Overview tiles first) and one page at a time on the right, so the page never scrolls on
+        for ever. Inside a page, cards are laid out like Windows 11 settings (explanation left, control right).
+
+        Theme: every colour comes from NINA's brushes (DynamicResource), so the page follows whatever colour schema
+        the user picks. NINA styles CheckBox as an ON/OFF switch and doesn't show its Content, so every switch has
+        its own label. Bindings are exactly those of OptionsViewModel; only the layout lives here.
+    -->
+    <BooleanToVisibilityConverter x:Key="NightManager_BoolToVisibility" />
+    <local:StripPrefixConverter x:Key="NightManager_StripPrefix" />
+    <local:EmptyToCollapsedConverter x:Key="NightManager_EmptyToCollapsed" />
+
+    <!-- A section card. -->
+    <Style x:Key="NightManager_Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Margin" Value="0,0,0,22" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <!-- One setting inside a card, with a hairline above it (the first row of a card has none). -->
+    <Style x:Key="NightManager_Row" TargetType="Border">
+        <Setter Property="Padding" Value="18,13" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    <Style x:Key="NightManager_FirstRow" TargetType="Border">
+        <Setter Property="Padding" Value="18,13" />
+    </Style>
+
+    <Style x:Key="NightManager_SectionIcon" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="2,0,12,0" />
+    </Style>
+    <Style x:Key="NightManager_SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    <Style x:Key="NightManager_SectionSubtitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Opacity" Value="0.65" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    <Style x:Key="NightManager_Label" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    <Style x:Key="NightManager_Hint" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Opacity" Value="0.62" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,3,0,0" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    <Style x:Key="NightManager_Caption" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Opacity" Value="0.6" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <local:PageIsConverter x:Key="NightManager_PageIs" />
+    <local:PageVisibilityConverter x:Key="NightManager_PageVisibility" />
+
+    <!-- A page in the left rail: icon (Tag) and name, a bar and a tint when it's the open page. -->
+    <Style x:Key="NightManager_Nav" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" CornerRadius="6" Padding="10,9" Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Bar" CornerRadius="1.5" Height="16" Background="{DynamicResource PrimaryBrush}" Visibility="Hidden" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       Margin="10,0,12,0" VerticalAlignment="Center" Foreground="{TemplateBinding Foreground}" />
+                            <TextBlock x:Name="Label" Grid.Column="2" Text="{TemplateBinding Content}" FontSize="13" VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" Foreground="{TemplateBinding Foreground}" Opacity="0.8" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SecondaryBackgroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+                            <Setter TargetName="Bar" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Label" Property="FontWeight" Value="SemiBold" />
+                            <Setter TargetName="Label" Property="Opacity" Value="1" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- An overview tile: a card that opens its page. -->
+    <Style x:Key="NightManager_Tile" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Margin" Value="0,0,12,12" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" CornerRadius="8" Padding="16,14" MinHeight="104" SnapsToDevicePixels="True"
+                            Background="{DynamicResource SecondaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource TertiaryBackgroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Key is replaced at runtime with "<plugin name>_Options" (see Resources.xaml.cs). -->
+    <DataTemplate x:Key="OptionsTemplate">
+        <StackPanel Margin="0,4,14,14" Width="1060" HorizontalAlignment="Left" DataContext="{Binding Options}">
+
+            <!-- ============================== Header: what's happening ============================== -->
+            <Border Style="{StaticResource NightManager_Card}" Padding="22,20">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Moon badge -->
+                        <Border Width="48" Height="48" CornerRadius="24" Margin="0,0,16,0" VerticalAlignment="Top"
+                                Background="{DynamicResource TertiaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                            <TextBlock Text="&#xE708;" FontFamily="Segoe MDL2 Assets" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource PrimaryBrush}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="The Night Manager" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border CornerRadius="11" Padding="9,3" Background="{DynamicResource TertiaryBackgroundBrush}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="9" Height="9" Margin="0,0,7,0" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#8C8C99" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding StatusKind}" Value="online">
+                                                            <Setter Property="Fill" Value="#2BB673" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding StatusKind}" Value="warning">
+                                                            <Setter Property="Fill" Value="#F0C418" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding StatusKind}" Value="offline">
+                                                            <Setter Property="Fill" Value="#E6194B" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding StatusTitle}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{Binding StatusDetail}" Style="{StaticResource NightManager_Hint}" Margin="0,8,0,0"
+                                       Visibility="{Binding StatusDetail, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                        </StackPanel>
+
+                        <!-- Master switch -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="16,4,0,0">
+                            <TextBlock Text="Send data" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <CheckBox IsChecked="{Binding Enabled}" VerticalAlignment="Center"
+                                      ToolTip="Switch off to stop sending anything to The Night Manager from this NINA profile." />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ============================== Dashboard: pages on the left, one page at a time ============================== -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="196" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE80F;" Content="Overview"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=overview}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE71B;" Content="Connection"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=connection}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE72E;" Content="Data and privacy"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=data}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE722;" Content="Images and optics"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=images}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xEA8F;" Content="Alerts and control"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=control}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE895;" Content="Remote site"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=site}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE7E8;" Content="Startup"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=startup}" />
+                    <RadioButton Style="{StaticResource NightManager_Nav}" Tag="&#xE716;" Content="Collaborators"
+                                 IsChecked="{Binding Page, Converter={StaticResource NightManager_PageIs}, ConverterParameter=people}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1">
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=overview}">
+                        <UniformGrid Columns="3">
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="connection">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE71B;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="CONNECTION" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ConnectionSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="connection">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="THIS RIG" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding RigText, Converter={StaticResource NightManager_StripPrefix}, ConverterParameter='This rig:'}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="images">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE708;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="TONIGHT" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SessionText, Converter={StaticResource NightManager_StripPrefix}, ConverterParameter='Tonight:'}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="data">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="TARGET SCHEDULER" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SchedulerText, Converter={StaticResource NightManager_StripPrefix}, ConverterParameter='Target Scheduler detected:|Target Scheduler'}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="data">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="WHAT GETS SENT" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding DataSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="images">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE722;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="IMAGES AND OPTICS" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ImagesSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="control">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xEA8F;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="ALERTS AND CONTROL" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ControlSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="site">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE895;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="REMOTE SITE" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SiteSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="startup">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="STARTUP" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding StartupStatus}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <Button Style="{StaticResource NightManager_Tile}" Command="{Binding GoToCommand}" CommandParameter="people">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Opacity="0.45" VerticalAlignment="Top" Margin="8,3,0,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <TextBlock Text="&#xE716;" FontFamily="Segoe MDL2 Assets" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                            <TextBlock Text="COLLABORATORS" Style="{StaticResource NightManager_Caption}" Margin="0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding PeopleSummary}" Style="{StaticResource NightManager_Label}" FontSize="12.5" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                        </UniformGrid>
+                        <TextBlock Style="{StaticResource NightManager_Hint}" Margin="2,2,0,0"
+                                   Text="Choose a tile or a page on the left to change its settings. Changes are saved as you make them." />
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=connection}">
+                    <!-- ============================== Link this observatory ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE71B;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Link this observatory" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="One pairing links this PC; every NINA instance on it appears in the app as its own rig." Style="{StaticResource NightManager_SectionSubtitle}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                        <Button Command="{Binding PairCommand}" MinWidth="110" Height="32">
+                                            <TextBlock Text="Pair" Margin="14,0" />
+                                        </Button>
+                                        <Button Command="{Binding CancelPairingCommand}" MinWidth="90" Height="32" Margin="8,0,0,0"
+                                                Visibility="{Binding IsPairing, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                            <TextBlock Text="Cancel" Margin="12,0" />
+                                        </Button>
+                                        <Button Command="{Binding UnpairCommand}" MinWidth="90" Height="32" Margin="8,0,0,0"
+                                                Visibility="{Binding IsPaired, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                            <TextBlock Text="Unlink" Margin="12,0" />
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Pair with the app" Style="{StaticResource NightManager_Label}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource NightManager_Hint}"
+                                                   Text="Press Pair, then type the code in The Night Manager app (Add observatory) or on the pairing web page shown with the code. No keys to copy." />
+                                        <TextBlock Style="{StaticResource NightManager_Hint}" Margin="0,6,0,0"
+                                                   Visibility="{Binding IsPaired, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                            <Run Text="Linked · credential" />
+                                            <Run Text="{Binding CredentialHint, Mode=OneWay}" FontFamily="Consolas" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <!-- The code, big, while pairing -->
+                            <Border Style="{StaticResource NightManager_Row}"
+                                    Visibility="{Binding HasPairingCode, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <StackPanel>
+                                    <TextBlock Text="YOUR CODE" Style="{StaticResource NightManager_Caption}" />
+                                    <Border HorizontalAlignment="Left" Padding="22,8" CornerRadius="8" Margin="0,2,0,0"
+                                            Background="{DynamicResource TertiaryBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                                        <TextBlock Text="{Binding PairingCode}" FontFamily="Consolas" FontSize="38" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource NightManager_Row}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PairingMessage}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding PairingMessage}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="{Binding PairingMessage}" Style="{StaticResource NightManager_Label}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Setup ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE7F4;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Setup" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="A setup is one mount and every optical path on it. Twin scopes on one mount: make one NINA the main rig and link the other to it." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding RoleOptions}" SelectedItem="{Binding SelectedRole}" DisplayMemberPath="Label"
+                                              Width="340" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="This NINA profile is" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="A PC running several mounts has one main rig per mount." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource NightManager_Row}" Visibility="{Binding IsMain, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <DockPanel>
+                                    <TextBox DockPanel.Dock="Right" Text="{Binding SetupName}" Width="340" Height="30" VerticalContentAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Setup name" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="How this mount appears in the app." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource NightManager_Row}" Visibility="{Binding IsLinked, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                        <ComboBox ItemsSource="{Binding MainRigOptions}" SelectedItem="{Binding SelectedMainRig}" Width="250">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding PickerLabel, Mode=OneWay}" />
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Command="{Binding RefreshMainRigsCommand}" Width="32" Height="30" Margin="8,0,0,0" ToolTip="Refresh the list">
+                                            <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="13" />
+                                        </Button>
+                                    </StackPanel>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Main rig (shares its mount)" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Main rigs appear once their NINA has been started on this PC with The Night Manager installed." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SetupText}" Style="{StaticResource NightManager_Hint}" Margin="0" />
+                                    <TextBlock Text="{Binding SetupProblem}" Foreground="#F0C418" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Visibility="{Binding SetupProblem, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Advanced ============================== -->
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <Expander Margin="14,8">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="{DynamicResource PrimaryBrush}" />
+                                    <TextBlock Text="Advanced" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                </StackPanel>
+                            </Expander.Header>
+                            <StackPanel Margin="4,12,4,8">
+                                <TextBlock Text="Credential" Style="{StaticResource NightManager_Label}" />
+                                <TextBlock Text="Only needed if support gives you a credential (it starts with nm2_)." Style="{StaticResource NightManager_Hint}" Margin="0,2,0,8" />
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Command="{Binding ApplyManualCredentialCommand}" MinWidth="80" Height="30" Margin="8,0,0,0">
+                                        <TextBlock Text="Save" Margin="10,0" />
+                                    </Button>
+                                    <TextBox Text="{Binding ManualCredential, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Height="30" VerticalContentAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="Service address" Style="{StaticResource NightManager_Label}" Margin="0,16,0,0" />
+                                <TextBlock Text="Shared by every NINA instance on this PC." Style="{StaticResource NightManager_Hint}" Margin="0,2,0,8" />
+                                <TextBox Text="{Binding ServiceUrl}" FontFamily="Consolas" Height="30" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=data}">
+                    <!-- ============================== What gets sent ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE72E;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="What gets sent" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Status, equipment, weather, safety, alerts and the night's totals always go to the app. Everything below is optional: untick it and it is not collected or sent at all." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding AppDataOffText}" Style="{StaticResource NightManager_Hint}" Foreground="#E0A040" TextWrapping="Wrap" MaxWidth="700" HorizontalAlignment="Left" Margin="0,0,0,10" Visibility="{Binding AppDataOffText, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding SendSubReports}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Sub reports" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Each sub's figures and grade: the subs list, night reports and Year in Review. Off: alerts still work, and previews and optics stop too." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding LiveUpdates}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Live updates" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Second-by-second figures while someone has the app open. Off: the app shows each check-in (about a minute apart). Remote control still answers at once." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding LiveGuideGraph}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Live guiding graph" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Every guide step, for the graph in the app. Off: guiding RMS still arrives with each check-in." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding ShareTargetScheduler}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Target Scheduler" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Projects, tonight's plan, the week ahead and your imaging history." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== History ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE81C;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Imaging history" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Sends what Target Scheduler has recorded (targets, filters, exposures, HFR, grading; never images) so the app's Year in Review includes your nights before The Night Manager. Done once by itself after installing; read-only on this PC." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <Border Style="{StaticResource NightManager_FirstRow}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Command="{Binding ImportHistoryCommand}" MinWidth="150" Height="30" VerticalAlignment="Center"><TextBlock Text="Send history now" Margin="10,0" /></Button>
+                                <StackPanel>
+                                    <TextBlock Text="Target Scheduler history" Style="{StaticResource NightManager_Label}" />
+                                    <TextBlock Text="{Binding HistoryMessage}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=images}">
+                    <!-- ============================== Images and grading ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE722;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Images and sub grading" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Full-resolution FITS/XISF files never leave this PC." Style="{StaticResource NightManager_SectionSubtitle}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding UploadThumbnails}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Send previews to the app" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="A small stretched preview of each light frame (every sub of 3 minutes or more; shorter subs are sampled)." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding SendFileNames}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Include file names" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Off: subs are numbered instead." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <TextBox DockPanel.Dock="Right" Width="260" Height="30" VerticalContentAlignment="Center" Text="{Binding CalibrationFolder, UpdateSourceTrigger=LostFocus}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Calibration library folder (optional)" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="For the sub-length advice: bias frames, dark flats and short darks here (and in NINA's image folder) are used to measure your camera's read noise. Only a few per gain are read, never while imaging." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="460" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding WriteCullList}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Write a cull list when the night ends" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="A CSV with every frame's grade and a list of subs flagged for rejection, next to the images. Nothing is ever deleted or moved." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Sensitivities}" SelectedItem="{Binding GradingSensitivity}" Width="150" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Grading sensitivity" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Each frame is compared with recent good frames of the same target, filter and exposure, so no tuning per telescope is needed." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Optics health ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE722;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Optics health" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Tilt, field curvature and collimation from the stars of every light frame, and where each part of the sensor comes to focus from every autofocus run (NINA's or Hocus Focus). Measured on this PC; the app gets a few numbers." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding OpticsAnalysis}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Measure the optics" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="About half a second per frame on a background thread; nothing is slowed down." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <TextBox DockPanel.Dock="Right" Width="90" Height="30" VerticalContentAlignment="Center" Text="{Binding FocuserStepMicrons, UpdateSourceTrigger=LostFocus}" />
+                                    <StackPanel>
+                                        <TextBlock Text="Focuser step size (microns, optional)" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="How far one focuser step moves the focus. With it, tilt and curvature are shown in microns against your critical focus zone; without it, in focuser steps." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=control}">
+                    <!-- ============================== Alerts ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xEA8F;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Alerts" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Clouds, focus drift, dew risk, cooling problems, stalled sequences and safety changes always notify you." Style="{StaticResource NightManager_SectionSubtitle}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                        <TextBox Text="{Binding GuidingAlertArcsec, StringFormat=0.0#}" Width="64" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" />
+                                        <TextBlock Text="arcsec" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Guiding alert" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Alert when guiding RMS stays above this. 0 = only compared with tonight's normal." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding NotifyCameraCooled}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Camera cooled" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Notify me when the camera reaches its cooling set point." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding NotifyAutofocus}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Autofocus" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Notify me when autofocus runs; tap the notification to watch the focus curve live." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Remote actions ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE703;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Remote actions" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Only what's switched on here can be triggered from a phone, and only for this rig. Every action is logged and confirmed back to the app." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}" Padding="18,12">
+                                <Border CornerRadius="6" Padding="12,9" Background="#26E6194B" BorderBrush="#66E6194B" BorderThickness="1">
+                                    <DockPanel>
+                                        <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#E6194B" VerticalAlignment="Top" Margin="0,1,10,0" />
+                                        <TextBlock Style="{StaticResource NightManager_Label}" FontSize="12"
+                                                   Text="Make sure parking and closing are safe for your setup (cables, roof clearance) before allowing them. With several scopes on one mount, allow mount and dome actions only on the NINA that controls them." />
+                                    </DockPanel>
+                                </Border>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowAbortSequence}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <TextBlock Text="Abort the running sequence" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowStopGuiding}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <TextBlock Text="Stop guiding" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowParkMount}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <TextBlock Text="Park the mount" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowCloseDome}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <TextBlock Text="Close the dome or roof" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowWarmCamera}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <TextBlock Text="Warm the camera" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowSafeShutdown}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Safe shutdown" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Abort, stop guiding, park, close the dome and warm the camera in one tap (each step only if that equipment is connected)." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <StackPanel Visibility="{Binding ShowDevFeatures, Converter={StaticResource NightManager_BoolToVisibility}}">
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowEquipment}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Equipment control" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="From the phone: connect devices, cool the camera, take a test shot or loop, focus and autofocus, change filter, guide, rotator, flat panel and power switches. Never while a sequence is running (except cooling, stopping and switches)." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowMove}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Move the mount and dome" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="From the phone: unpark, slew, slew and centre, home, tracking, open the dome, polar alignment and starting the sequence. Only tick this if moving the telescope unwatched is safe (cables, roof, pier clearance). Stop and close always work." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Sequence plans from the app ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE8F1;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Sequence plans from the app" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Plans built on the phone can go to NINA's Targets library, be appended, run next, or replace the targets (the old sequence is backed up first)." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowPlansFromApp}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Allow plans from the app" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Backups go to Documents\N.I.N.A\NightManager backups." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}" IsEnabled="{Binding AllowPlansFromApp}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding AllowStartFromApp}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Allow starting the sequence from the app" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="After a plan is loaded, the phone can start it (it always asks for confirmation)." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=site}">
+                    <StackPanel>
+                    <!-- ============================== Local Wi-Fi link ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE701;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Home Wi-Fi link" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="When your phone is on the same home network as this PC, it gets live data and sharper sub previews straight from here. Away from home, and for collaborators elsewhere, everything goes through the server as usual. Never over a VPN such as Tailscale. Shared by every NINA on this PC." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}" Margin="0,0,0,26">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding RemoteObservatory}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="This is a remote observatory" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Tick this if your phone is never on this PC's network (a hosted pier, a site away from home). The home Wi-Fi link is switched off and nothing listens on the network." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding LocalLinkStatus}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    </StackPanel>
+
+                    <!-- ============================== Syncthing ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE895;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Syncthing" Style="{StaticResource NightManager_SectionTitle}" />
+                                <Border CornerRadius="8" Padding="7,1" Margin="8,2,0,0" VerticalAlignment="Center" Background="{DynamicResource TertiaryBackgroundBrush}">
+                                    <TextBlock Text="PRO" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Upload status in the app, and uploads limited to a time window (e.g. after midnight). Shared by every NINA on this PC." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding SyncthingEnabled}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Watch Syncthing on this PC" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="{Binding SyncthingStatus}" Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <StackPanel IsEnabled="{Binding SyncthingEnabled}">
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding SyncthingAllowControl}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                        <StackPanel>
+                                            <TextBlock Text="Allow control from the app" Style="{StaticResource NightManager_Label}" />
+                                            <TextBlock Text="Pause, resume and change the upload window from the phone." Style="{StaticResource NightManager_Hint}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding SyncWindowEnabled}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                        <StackPanel>
+                                            <TextBlock Text="Upload window" Style="{StaticResource NightManager_Label}" />
+                                            <TextBlock Text="Only upload between these times (this PC's local time)." Style="{StaticResource NightManager_Hint}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                                <Border Style="{StaticResource NightManager_Row}" IsEnabled="{Binding SyncWindowEnabled}" Padding="36,12,18,12">
+                                    <StackPanel>
+                                        <WrapPanel>
+                                            <TextBlock Text="From" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBox Width="64" Height="30" Text="{Binding SyncWindowStart}" FontFamily="Consolas" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
+                                            <TextBlock Text="to" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="10,0,8,0" />
+                                            <TextBox Width="64" Height="30" Text="{Binding SyncWindowEnd}" FontFamily="Consolas" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
+                                        </WrapPanel>
+                                        <DockPanel Margin="0,12,0,0">
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                                <TextBox Width="76" Height="30" Text="{Binding SyncLimitKbps}" IsEnabled="{Binding SyncLimitOutside}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" />
+                                                <TextBlock Text="kbit/s" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,12,0" />
+                                                <CheckBox IsChecked="{Binding SyncLimitOutside}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="Outside the window, limit instead of pausing" Style="{StaticResource NightManager_Label}" />
+                                                <TextBlock Text="Off: uploads pause outside the window." Style="{StaticResource NightManager_Hint}" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                        <DockPanel Margin="0,12,0,0">
+                                            <TextBox DockPanel.Dock="Right" Width="260" Height="30" Text="{Binding SyncDevices}" VerticalContentAlignment="Center" Margin="16,0,0,0"
+                                                     ToolTip="Comma-separated device names. Empty: every other device." />
+                                            <StackPanel>
+                                                <TextBlock Text="Only these devices" Style="{StaticResource NightManager_Label}" />
+                                                <TextBlock Text="Comma-separated device names. Empty: every other device." Style="{StaticResource NightManager_Hint}" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Address" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                        <TextBox Grid.Column="1" Text="{Binding SyncthingUrl}" FontFamily="Consolas" Height="30" VerticalContentAlignment="Center" />
+                                        <TextBlock Grid.Row="1" Text="API key" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SyncthingApiKey}" FontFamily="Consolas" Height="30" VerticalContentAlignment="Center" Margin="0,8,0,0"
+                                                 ToolTip="Leave empty to read it from Syncthing on this PC. Otherwise: Syncthing → Actions → Settings → GUI → API Key." />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ============================== Cameras ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE714;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Observatory cameras" Style="{StaticResource NightManager_SectionTitle}" />
+                                <Border CornerRadius="8" Padding="7,1" Margin="8,2,0,0" VerticalAlignment="Center" Background="{DynamicResource TertiaryBackgroundBrush}">
+                                    <TextBlock Text="PRO" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="A small still (kilobytes) in the app, never video: at most every few minutes (never under 3) while someone watches or on a schedule, and at once when the kit has an error. Only the latest picture exists. Shared by every NINA on this PC; logins stay encrypted on this PC." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Command="{Binding RemoveCameraCommand}" MinWidth="80" Height="30" Margin="8,0,0,0" IsEnabled="{Binding HasSelectedCamera}"><TextBlock Text="Remove" Margin="10,0" /></Button>
+                                    <StackPanel>
+                                        <TextBlock Text="Cameras" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="{Binding CamerasStatus}" Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Command="{Binding AddPierCameraCommand}" MinWidth="90" Height="30" Margin="8,0,0,0"><TextBlock Text="Add pier camera" Margin="10,0" /></Button>
+                                        <StackPanel>
+                                            <TextBlock Text="Pier cameras" Style="{StaticResource NightManager_Label}" />
+                                            <TextBlock Text="Watching the equipment: a picture on a schedule and whenever the kit has a warning or alarm. Can also be a ZWO camera plugged into this PC (not NINA's or the guide camera): a short exposure, sent and never saved." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <ListBox ItemsSource="{Binding PierCameraRows}" SelectedItem="{Binding SelectedPierCamera}" MaxHeight="120" BorderThickness="0" Background="Transparent" Margin="0,6,0,0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding ListLabel}" Margin="2,3" Foreground="{DynamicResource PrimaryBrush}" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Command="{Binding AddAllSkyCameraCommand}" MinWidth="90" Height="30" Margin="8,0,0,0"><TextBlock Text="Add all-sky camera" Margin="10,0" /></Button>
+                                        <StackPanel>
+                                            <TextBlock Text="All-sky cameras" Style="{StaticResource NightManager_Label}" />
+                                            <TextBlock Text="Looking at the sky, run by their own all-sky software: we pick up its pictures (folder or stream) on a schedule, and when the safety status changes. Kit warnings don't trigger them." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                    <ListBox ItemsSource="{Binding AllSkyCameraRows}" SelectedItem="{Binding SelectedAllSkyCamera}" MaxHeight="120" BorderThickness="0" Background="Transparent" Margin="0,6,0,0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding ListLabel}" Margin="2,3" Foreground="{DynamicResource PrimaryBrush}" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Visibility="{Binding HasSelectedCamera, Converter={StaticResource NightManager_BoolToVisibility}}">
+                            <StackPanel DataContext="{Binding SelectedCamera}">
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <TextBlock Text="{Binding LockText}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" />
+                                </Border>
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Name" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                        <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Height="30" VerticalContentAlignment="Center" />
+
+                                        <TextBlock Grid.Row="1" Text="Source" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding SourceLabels}" SelectedIndex="{Binding KindIndex}" IsEnabled="{Binding Editable}" Height="30" Margin="0,8,0,0" />
+
+                                        <TextBlock Grid.Row="2" Text="Address" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0"
+                                                   Visibility="{Binding HasAddress, Converter={StaticResource NightManager_BoolToVisibility}}" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Address}" ToolTip="{Binding AddressHint}" IsEnabled="{Binding Editable}" FontFamily="Consolas" Height="30" VerticalContentAlignment="Center" Margin="0,8,0,0"
+                                                 Visibility="{Binding HasAddress, Converter={StaticResource NightManager_BoolToVisibility}}" />
+
+                                        <TextBlock Grid.Row="3" Text="Camera login" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0"
+                                                   Visibility="{Binding IsNetwork, Converter={StaticResource NightManager_BoolToVisibility}}" />
+                                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0" IsEnabled="{Binding Editable}"
+                                                    Visibility="{Binding IsNetwork, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                            <TextBox Width="160" Height="30" Text="{Binding UserName}" VerticalContentAlignment="Center" ToolTip="Username" />
+                                            <PasswordBox Width="160" Height="30" Margin="8,0,0,0" VerticalContentAlignment="Center" local:PasswordBinding.Value="{Binding Password}"
+                                                         ToolTip="Password (stored encrypted on this PC). Leave empty to keep the saved one." />
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="4" Text="When" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                        <WrapPanel Grid.Row="4" Grid.Column="1" Margin="0,8,0,0" IsEnabled="{Binding Editable}">
+                                            <ComboBox Width="230" Height="30" ItemsSource="{x:Static local:CameraRow.ModeLabels}" SelectedIndex="{Binding ModeIndex}" />
+                                            <TextBlock Text="at most every" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="12,0,8,0" />
+                                            <TextBox Width="52" Height="30" Text="{Binding IntervalMinutes}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" ToolTip="Minutes, 3 or more" />
+                                            <TextBlock Text="min" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                        </WrapPanel>
+
+                                        <TextBlock Grid.Row="5" Text="Picture" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                        <WrapPanel Grid.Row="5" Grid.Column="1" Margin="0,8,0,0" IsEnabled="{Binding Editable}">
+                                            <ComboBox Width="90" Height="30" ItemsSource="{x:Static local:CameraRow.Widths}" SelectedItem="{Binding Width}" />
+                                            <TextBlock Text="px wide, at most" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,8,0" />
+                                            <TextBox Width="52" Height="30" Text="{Binding MaxKilobytes}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" ToolTip="10 to 100 KB" />
+                                            <TextBlock Text="KB" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                        </WrapPanel>
+                                    </Grid>
+                                </Border>
+                                <Border Style="{StaticResource NightManager_Row}">
+                                    <DockPanel>
+                                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Enabled}" IsEnabled="{Binding Editable}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                        <StackPanel>
+                                            <TextBlock Text="Camera on" Style="{StaticResource NightManager_Label}" />
+                                            <TextBlock Text="Off: no pictures from this camera at all, not even on kit errors." Style="{StaticResource NightManager_Hint}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource NightManager_Row}" Visibility="{Binding SelectedIsZwo, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <Grid IsEnabled="{Binding SelectedCamera.Editable}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="ZWO camera" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <ComboBox Width="260" Height="30" IsEditable="True" ItemsSource="{Binding ZwoCameraNames}" Text="{Binding SelectedCamera.Address, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button Command="{Binding RefreshZwoCamerasCommand}" MinWidth="80" Height="30" Margin="8,0,0,0"><TextBlock Text="Look again" Margin="10,0" /></Button>
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ZwoMessage}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" Margin="0,4,0,0" />
+
+                                    <TextBlock Grid.Row="2" Text="After dark" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                    <WrapPanel Grid.Row="2" Grid.Column="1" Margin="0,8,0,0">
+                                        <TextBlock Text="exposure up to" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBox Width="52" Height="30" Text="{Binding SelectedCamera.MaxNightExposureSeconds}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" ToolTip="Seconds, 0.1 to 10 (default 2): it only needs to show the kit" />
+                                        <TextBlock Text="s, gain" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,8,0" />
+                                        <TextBox Width="60" Height="30" Text="{Binding SelectedCamera.NightGain}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" ToolTip="Empty: half way up the camera's range" />
+                                    </WrapPanel>
+
+                                    <TextBlock Grid.Row="3" Text="In daylight" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,8,16,0" />
+                                    <WrapPanel Grid.Row="3" Grid.Column="1" Margin="0,8,0,0">
+                                        <TextBlock Text="gain" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBox Width="60" Height="30" Text="{Binding SelectedCamera.DayGain}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" ToolTip="Empty: the camera's lowest" />
+                                        <TextBlock Text="The exposure finds itself; after dark too, up to your limit. Day and dark follow the observatory's twilight." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" MaxWidth="380" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                    </WrapPanel>
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}" Visibility="{Binding HasSelectedCamera, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <StackPanel>
+                                    <WrapPanel>
+                                        <Button Command="{Binding SaveCamerasCommand}" MinWidth="80" Height="30" Margin="0,0,8,0"><TextBlock Text="Save" Margin="10,0" /></Button>
+                                        <Button Command="{Binding TestCameraCommand}" MinWidth="110" Height="30" Margin="0,0,8,0"><TextBlock Text="Test picture" Margin="10,0" /></Button>
+                                    </WrapPanel>
+                                    <TextBlock Text="{Binding CameraMessage}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                               Visibility="{Binding CameraMessage, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource NightManager_Row}" Visibility="{Binding HasSelectedCamera, Converter={StaticResource NightManager_BoolToVisibility}}">
+                                <StackPanel>
+                                    <TextBlock Text="Lock these settings" Style="{StaticResource NightManager_Label}" />
+                                    <TextBlock Text="With the camera's own login (checked with the camera), or a passcode for a folder. Once locked, nobody can change the camera settings here without that login: the observatory stays in control." Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" Margin="0,2,0,8" />
+                                    <WrapPanel>
+                                        <TextBox Width="160" Height="30" Text="{Binding LockUserName}" VerticalContentAlignment="Center" ToolTip="Camera username (not needed for a folder)" />
+                                        <PasswordBox Width="160" Height="30" Margin="8,0,8,0" VerticalContentAlignment="Center" local:PasswordBinding.Value="{Binding LockPassword}" ToolTip="Camera password, or the folder passcode" />
+                                        <Button Command="{Binding LockCameraCommand}" MinWidth="80" Height="30" Margin="0,0,8,0"><TextBlock Text="Lock" Margin="10,0" /></Button>
+                                        <Button Command="{Binding UnlockCameraCommand}" MinWidth="80" Height="30"><TextBlock Text="Unlock" Margin="10,0" /></Button>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=startup}">
+                    <!-- ============================== Startup ============================== -->
+                    <StackPanel Orientation="Horizontal" Margin="2,0,0,10">
+                        <TextBlock Text="&#xE7E8;" Style="{StaticResource NightManager_SectionIcon}" />
+                        <StackPanel>
+                            <TextBlock Text="Startup" Style="{StaticResource NightManager_SectionTitle}" />
+                            <TextBlock Text="Start NINA when this PC starts: each profile, master first, with its sequence. After a power cut in the night, imaging carries on. The plan is shared with the app." Style="{StaticResource NightManager_SectionSubtitle}" MaxWidth="760" HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding LauncherEnabled}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Start NINA when this PC starts" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="{Binding StartupStatus}" Style="{StaticResource NightManager_Hint}" />
+                                        <TextBlock Text="Windows has to log on by itself after a restart (automatic sign-in) for this to work unattended. Shared by every NINA on this PC." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <TextBox DockPanel.Dock="Right" Width="380" Height="30" Text="{Binding LauncherNinaPath}" VerticalContentAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="NINA program" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="{Binding DefaultNinaPathHint}" Style="{StaticResource NightManager_Hint}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <TextBox DockPanel.Dock="Right" Width="380" Height="30" Text="{Binding LauncherProfilesFolder}" VerticalContentAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="NINA profiles folder" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="{Binding DefaultProfilesFolderHint}" Style="{StaticResource NightManager_Hint}" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Command="{Binding RescanStartupCommand}" MinWidth="90" Height="30" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Look again" Margin="10,0" />
+                                    </Button>
+                                    <TextBox DockPanel.Dock="Right" Width="290" Height="30" Text="{Binding LauncherSequenceFolders}" VerticalContentAlignment="Center" Margin="16,0,0,0"
+                                             ToolTip="Separate folders with ;" />
+                                    <StackPanel>
+                                        <TextBlock Text="More sequence folders" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Each profile's sequence and template folders are always searched. Only whole sequences are listed." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource NightManager_Card}" Visibility="{Binding IsPaired, Converter={StaticResource NightManager_BoolToVisibility}}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Command="{Binding LoadStartupPlanCommand}" Width="32" Height="30" VerticalAlignment="Center" Margin="8,0,0,0" ToolTip="Load the plan saved in the app">
+                                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="13" />
+                                    </Button>
+                                    <CheckBox DockPanel.Dock="Right" IsChecked="{Binding PlanEnabled}" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="Startup plan" Style="{StaticResource NightManager_Label}" FontWeight="SemiBold" />
+                                        <TextBlock Text="The same plan as on the app's Startup page. Switch it off there to skip a night without touching this PC." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}" Padding="18,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition Width="60" />
+                                        <ColumnDefinition Width="250" />
+                                        <ColumnDefinition Width="90" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="PROFILE" Style="{StaticResource NightManager_Caption}" Margin="0" />
+                                    <TextBlock Grid.Column="1" Text="START" Style="{StaticResource NightManager_Caption}" Margin="0" />
+                                    <TextBlock Grid.Column="2" Text="MASTER" Style="{StaticResource NightManager_Caption}" Margin="0" ToolTip="Controls the mount: started first" />
+                                    <TextBlock Grid.Column="3" Text="SEQUENCE" Style="{StaticResource NightManager_Caption}" Margin="0" />
+                                    <TextBlock Grid.Column="4" Text="RUN IT" Style="{StaticResource NightManager_Caption}" Margin="0" />
+                                </Grid>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding StartupRows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource NightManager_Row}" Padding="18,8">
+                                            <StackPanel>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="60" />
+                                                        <ColumnDefinition Width="60" />
+                                                        <ColumnDefinition Width="250" />
+                                                        <ColumnDefinition Width="90" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource PrimaryBrush}" />
+                                                    <CheckBox Grid.Column="1" IsChecked="{Binding Start}" VerticalAlignment="Center" />
+                                                    <RadioButton Grid.Column="2" IsChecked="{Binding IsMaster}" VerticalAlignment="Center" />
+                                                    <ComboBox Grid.Column="3" ItemsSource="{Binding Sequences}" SelectedItem="{Binding Sequence}" DisplayMemberPath="Name" Height="28" Margin="0,0,12,0" />
+                                                    <CheckBox Grid.Column="4" IsChecked="{Binding RunSequence}" IsEnabled="{Binding RunAllowed}" VerticalAlignment="Center" />
+                                                </Grid>
+                                                <TextBlock Text="{Binding Hint}" Style="{StaticResource NightManager_Hint}" Margin="0,4,0,0"
+                                                           Visibility="{Binding Hint, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                        <TextBox Width="60" Height="30" Text="{Binding PlanDelaySeconds}" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" />
+                                        <TextBlock Text="seconds" Style="{StaticResource NightManager_Label}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Gap between NINA instances" Style="{StaticResource NightManager_Label}" />
+                                        <TextBlock Text="Twin and multi-scope rigs: the master starts first, the others this long apart (15 to 600)." Style="{StaticResource NightManager_Hint}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <StackPanel>
+                                    <TextBlock Text="At the next start" Style="{StaticResource NightManager_Label}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                    <TextBlock Text="{Binding StartupPreview}" Style="{StaticResource NightManager_Hint}" TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource NightManager_Hint}" Margin="0,6,0,0" TextWrapping="Wrap"
+                                               Text="If the PC restarts in the night while a profile was imaging, its sequence is started again (until dawn), where this PC allows starting sequences." />
+                                    <DockPanel Margin="0,10,0,0">
+                                        <Button DockPanel.Dock="Right" Command="{Binding SaveStartupPlanCommand}" MinWidth="100" Height="30">
+                                            <TextBlock Text="Save plan" Margin="12,0" />
+                                        </Button>
+                                        <TextBlock Text="{Binding StartupMessage}" Style="{StaticResource NightManager_Label}" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Link this observatory first (Connection) to set the startup plan." Margin="2,0,0,10">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource NightManager_Hint}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPaired}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <Border Style="{StaticResource NightManager_Card}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <StackPanel>
+                                    <TextBlock Text="Last start" Style="{StaticResource NightManager_Label}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                    <TextBlock Text="{Binding LauncherLastRun}" FontFamily="Consolas" FontSize="11.5" TextWrapping="Wrap" Opacity="0.8" Foreground="{DynamicResource PrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    </StackPanel>
+
+                    <StackPanel Visibility="{Binding Page, Converter={StaticResource NightManager_PageVisibility}, ConverterParameter=people}">
+                    <!-- ============================== Collaborators ============================== -->
+                    <StackPanel Margin="2,0,0,10" Visibility="{Binding IsPaired, Converter={StaticResource NightManager_BoolToVisibility}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE716;" Style="{StaticResource NightManager_SectionIcon}" />
+                            <StackPanel>
+                                <TextBlock Text="Collaborators" Style="{StaticResource NightManager_SectionTitle}" />
+                                <TextBlock Text="Share this observatory: every rig on this PC, live status, subs, plans and morning reports." Style="{StaticResource NightManager_SectionSubtitle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource NightManager_Card}" Visibility="{Binding IsPaired, Converter={StaticResource NightManager_BoolToVisibility}}">
+                        <StackPanel>
+                            <Border Style="{StaticResource NightManager_FirstRow}">
+                                <DockPanel>
+                                    <Button DockPanel.Dock="Right" Command="{Binding LoadCollaboratorsCommand}" Width="32" Height="30" VerticalAlignment="Top" Margin="16,0,0,0" ToolTip="Refresh">
+                                        <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="13" />
+                                    </Button>
+                                    <TextBlock Text="{Binding CollaboratorsPlanText}" Style="{StaticResource NightManager_Hint}" Margin="0" VerticalAlignment="Center" />
+                                </DockPanel>
+                            </Border>
+
+                            <ItemsControl ItemsSource="{Binding Collaborators}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource NightManager_Row}" Padding="18,10">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="170" />
+                                                    <ColumnDefinition Width="170" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Width="28" Height="28" CornerRadius="14" Margin="0,0,10,0" Background="{DynamicResource TertiaryBackgroundBrush}">
+                                                        <TextBlock Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                                    </Border>
+                                                    <TextBlock Text="{Binding Email}" FontSize="13" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource PrimaryBrush}" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Role}" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryBrush}" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="12" Opacity="0.7" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource PrimaryBrush}" />
+                                                <Button Grid.Column="3" Height="28" MinWidth="80"
+                                                        Command="{Binding DataContext.RemoveCollaboratorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <TextBlock Text="Remove" Margin="10,0" />
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Style="{StaticResource NightManager_Row}">
+                                <StackPanel>
+                                    <TextBlock Text="Invite someone" Style="{StaticResource NightManager_Label}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding InviteEmail, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" Height="30"
+                                                 ToolTip="The email address they sign in to The Night Manager with" />
+                                        <ComboBox Grid.Column="1" ItemsSource="{Binding CollaboratorRoles}" SelectedItem="{Binding InviteRole}" Width="190" Height="30" Margin="8,0,0,0" />
+                                        <Button Grid.Column="2" Command="{Binding InviteCommand}" MinWidth="100" Height="30" Margin="8,0,0,0">
+                                            <TextBlock Text="Invite" Margin="12,0" />
+                                        </Button>
+                                    </Grid>
+                                    <TextBlock Style="{StaticResource NightManager_Hint}" Margin="0,8,0,0"
+                                               Text="The invitation waits for them in the app. “Can view and control” also allows the remote actions you switched on above." />
+                                    <TextBlock Text="{Binding CollaboratorsMessage}" Style="{StaticResource NightManager_Label}" FontSize="12" Margin="0,8,0,0"
+                                               Visibility="{Binding CollaboratorsMessage, Converter={StaticResource NightManager_EmptyToCollapsed}}" />
+                                    <DockPanel Margin="0,8,0,0">
+                                        <DockPanel.Style>
+                                            <Style TargetType="DockPanel">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding LastInviteLink}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </DockPanel.Style>
+                                        <Button DockPanel.Dock="Right" Command="{Binding CopyInviteLinkCommand}" MinWidth="90" Height="30" Margin="8,0,0,0">
+                                            <TextBlock Text="Copy link" Margin="10,0" />
+                                        </Button>
+                                        <TextBox Text="{Binding LastInviteLink, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" VerticalContentAlignment="Center" Height="30" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="Link this observatory first (Connection), then invite people here." Margin="2,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource NightManager_Hint}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPaired}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

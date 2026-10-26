@@ -1,0 +1,12 @@
+The Night Manager plugin includes the following third-party components, used unmodified and loaded dynamically:
+
+LibVLC 3.0.21 (libvlc.dll, libvlccore.dll and the modules under libvlc/win-x64/plugins)
+  Copyright (C) VideoLAN and the VLC authors. Licensed under the GNU Lesser General Public License v2.1 or later.
+  Source: https://code.videolan.org/videolan/vlc   License: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+  The bundled modules include FFmpeg (libavcodec/libswscale, LGPL v2.1 or later) and live555 (LGPL v3).
+  Only the modules needed to read one frame from an RTSP camera are shipped; you may replace them with any
+  compatible LibVLC 3.0.x build of your own.
+
+LibVLCSharp 3.9.1 (LibVLCSharp.dll)
+  Copyright (C) VideoLAN and the LibVLCSharp authors. Licensed under the GNU Lesser General Public License v2.1.
+  Source: https://code.videolan.org/videolan/LibVLCSharp

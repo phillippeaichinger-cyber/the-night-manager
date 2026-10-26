@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../Plugin.props" />
+  <PropertyGroup>
+    <RootNamespace>NightManager.Plugin</RootNamespace>
+    <AssemblyName>NightManager</AssemblyName>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NINA.Plugin" Version="$(NinaPackageVersion)" />
+    <!-- Observatory cameras: one RTSP frame, decoded in memory. Same versions as NINA's RTSP Client plugin, so both
+         can be loaded in NINA at once. Only the VLC modules a single-frame grab needs are copied (see below). -->
+    <PackageReference Include="LibVLCSharp" Version="3.9.1" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+  </ItemGroup>
+  <!-- The VLC modules a single RTSP frame needs (about 22 MB instead of 97): RTSP (live555), H.264/H.265/MPEG-4
+       packetizers, the avcodec decoder (also MJPEG), chroma conversion/scaling to BGRA, and the memory video output. -->
+  <PropertyGroup>
+    <VlcWindowsX86Enabled>false</VlcWindowsX86Enabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <VlcWindowsX64IncludeFiles Include="libvlc.dll;libvlccore.dll" />
+    <VlcWindowsX64IncludeFiles Include="plugins\access\liblive555_plugin.dll" />
+    <VlcWindowsX64IncludeFiles Include="plugins\packetizer\libpacketizer_h264_plugin.dll;plugins\packetizer\libpacketizer_hevc_plugin.dll;plugins\packetizer\libpacketizer_mpeg4video_plugin.dll;plugins\packetizer\libpacketizer_copy_plugin.dll" />
+    <VlcWindowsX64IncludeFiles Include="plugins\codec\libavcodec_plugin.dll" />
+    <VlcWindowsX64IncludeFiles Include="plugins\video_chroma\libswscale_plugin.dll;plugins\video_chroma\libchain_plugin.dll;plugins\video_chroma\libi420_rgb_plugin.dll;plugins\video_chroma\libi420_rgb_sse2_plugin.dll;plugins\video_chroma\librv32_plugin.dll;plugins\video_chroma\libyuvp_plugin.dll" />
+    <VlcWindowsX64IncludeFiles Include="plugins\video_output\libvmem_plugin.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NightManager.Core/NightManager.Core.csproj" />
+  </ItemGroup>
+  <Import Project="../../build/Plugin.targets" />
+</Project>

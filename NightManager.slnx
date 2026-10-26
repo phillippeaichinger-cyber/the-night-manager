@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NightManager.Core/NightManager.Core.csproj" />
+    <Project Path="src/NightManager.Launcher/NightManager.Launcher.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NightManager.Core.Tests/NightManager.Core.Tests.csproj" />
+  </Folder>
+  <Project Path="src/NightManager/NightManager.csproj" />
+  <Project Path="tests/NightManager.Tests/NightManager.Tests.csproj" />
+</Solution>

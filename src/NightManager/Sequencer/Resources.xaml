@@ -1,0 +1,220 @@
+<ResourceDictionary x:Class="NightManager.Plugin.Sequencer.Resources"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:NightManager.Plugin.Sequencer"
+    xmlns:nina="clr-namespace:NINA.View.Sequencer;assembly=NINA.Sequencer"
+    xmlns:mini="clr-namespace:NINA.View.Sequencer.MiniSequencer;assembly=NINA.Sequencer">
+
+    <!-- Notify my phone -->
+    <DataTemplate DataType="{x:Type local:NotifyPhoneInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:NotifyPhoneInstruction.PlaceholderHelp}">
+                    <TextBlock Text="Title" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="140" Text="{Binding Title}" VerticalAlignment="Center" />
+                    <TextBlock Text="Message" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="220" Text="{Binding Message}" VerticalAlignment="Center" />
+                    <TextBlock Text="Level" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <ComboBox MinWidth="90" ItemsSource="{Binding Source={x:Static local:NotifyPhoneInstruction.Severities}}" SelectedItem="{Binding Severity}" />
+                    <CheckBox Content="Attach latest sub" IsChecked="{Binding AttachImage}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.NotifyPhoneInstruction_Mini">
+        <TextBlock Text="{Binding Title}" />
+    </DataTemplate>
+
+    <!-- End night & send report -->
+    <DataTemplate DataType="{x:Type local:EndSessionInstruction}">
+        <nina:SequenceBlockView />
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.EndSessionInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Night ending -->
+    <DataTemplate DataType="{x:Type local:NightEndingInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal">
+                    <TextBlock Text="Message (optional)" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="260" Text="{Binding Message}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.NightEndingInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Ask my phone -->
+    <DataTemplate DataType="{x:Type local:AskPhoneInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:PhoneInstructionBase.PlaceholderHelp}">
+                    <TextBlock Text="Question" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="220" Text="{Binding Question}" VerticalAlignment="Center" />
+                    <TextBlock Text="Yes button" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="70" Text="{Binding YesLabel}" VerticalAlignment="Center" />
+                    <TextBlock Text="No button" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="70" Text="{Binding NoLabel}" VerticalAlignment="Center" />
+                    <TextBlock Text="Wait (min, 0 = for ever)" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding TimeoutMinutes}" VerticalAlignment="Center" />
+                    <TextBlock Text="then answer" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <ComboBox MinWidth="60" ItemsSource="{Binding Source={x:Static local:AskPhoneInstruction.Answers}}" SelectedItem="{Binding OnTimeout}" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.AskPhoneInstruction_Mini">
+        <TextBlock Text="{Binding Question}" />
+    </DataTemplate>
+
+    <!-- Wait for go from phone -->
+    <DataTemplate DataType="{x:Type local:WaitForGoInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:PhoneInstructionBase.PlaceholderHelp}">
+                    <TextBlock Text="Message" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="220" Text="{Binding Message}" VerticalAlignment="Center" />
+                    <TextBlock Text="Wait (min, 0 = for ever)" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding TimeoutMinutes}" VerticalAlignment="Center" />
+                    <CheckBox Content="Carry on if no answer" IsChecked="{Binding ContinueOnTimeout}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.WaitForGoInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Wake me up -->
+    <DataTemplate DataType="{x:Type local:WakeMeUpInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:PhoneInstructionBase.PlaceholderHelp}">
+                    <TextBlock Text="Title" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="160" Text="{Binding Title}" VerticalAlignment="Center" />
+                    <TextBlock Text="Message" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="180" Text="{Binding Message}" VerticalAlignment="Center" />
+                    <TextBlock Text="Repeat every (min)" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding RepeatMinutes}" VerticalAlignment="Center" />
+                    <TextBlock Text="up to" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding MaxRepeats}" VerticalAlignment="Center" />
+                    <TextBlock Text="times" VerticalAlignment="Center" Margin="5,0,0,0" />
+                    <CheckBox Content="Hold the sequence until acknowledged" IsChecked="{Binding WaitForAcknowledgement}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.WakeMeUpInstruction_Mini">
+        <TextBlock Text="{Binding Title}" />
+    </DataTemplate>
+
+    <!-- Send latest image -->
+    <DataTemplate DataType="{x:Type local:SendLatestImageInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:PhoneInstructionBase.PlaceholderHelp}">
+                    <TextBlock Text="Title" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="160" Text="{Binding Title}" VerticalAlignment="Center" />
+                    <TextBlock Text="Message" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="220" Text="{Binding Message}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.SendLatestImageInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Note to timeline -->
+    <DataTemplate DataType="{x:Type local:NoteToTimelineInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:PhoneInstructionBase.PlaceholderHelp}">
+                    <TextBlock Text="Note" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="280" Text="{Binding Text}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.NoteToTimelineInstruction_Mini">
+        <TextBlock Text="{Binding Text}" />
+    </DataTemplate>
+
+    <!-- Start Lock Screen tracking -->
+    <DataTemplate DataType="{x:Type local:StartLockScreenInstruction}">
+        <nina:SequenceBlockView />
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.StartLockScreenInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Pause point -->
+    <DataTemplate DataType="{x:Type local:PausePointInstruction}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal">
+                    <TextBlock Text="Hold at most (min, 0 = until resumed)" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding MaxWaitMinutes}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.PausePointInstruction_Mini">
+        <TextBlock Text="{Binding Name}" />
+    </DataTemplate>
+
+    <!-- Failures to my phone (trigger) -->
+    <DataTemplate DataType="{x:Type local:FailuresToPhoneTrigger}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal">
+                    <CheckBox Content="Notify" IsChecked="{Binding Notify}" VerticalAlignment="Center" />
+                    <TextBlock Text="Level" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <ComboBox MinWidth="80" ItemsSource="{Binding Source={x:Static local:FailuresToPhoneTrigger.Levels}}" SelectedItem="{Binding Level}" />
+                    <TextBlock Text="Ignore (comma-separated)" VerticalAlignment="Center" Margin="10,0,5,0" />
+                    <TextBox MinWidth="160" Text="{Binding Ignore}" VerticalAlignment="Center" />
+                    <CheckBox Content="Every failed attempt" IsChecked="{Binding EveryAttempt}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.FailuresToPhoneTrigger_Mini">
+        <mini:MiniTrigger />
+    </DataTemplate>
+
+    <!-- Progress to my phone (trigger) -->
+    <DataTemplate DataType="{x:Type local:ProgressToPhoneTrigger}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <WrapPanel Orientation="Horizontal" ToolTip="{x:Static local:ProgressToPhoneTrigger.PlaceholderHelp}">
+                    <TextBlock Text="Every" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding EverySubs}" VerticalAlignment="Center" />
+                    <TextBlock Text="subs and/or every" VerticalAlignment="Center" Margin="5,0,5,0" />
+                    <TextBox MinWidth="40" Text="{Binding EveryMinutes}" VerticalAlignment="Center" />
+                    <TextBlock Text="min (0 = off)" VerticalAlignment="Center" Margin="5,0,10,0" />
+                    <TextBlock Text="Message" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox MinWidth="260" Text="{Binding Message}" VerticalAlignment="Center" />
+                </WrapPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.ProgressToPhoneTrigger_Mini">
+        <mini:MiniTrigger />
+    </DataTemplate>
+
+    <!-- Loop until finished from phone (condition) -->
+    <DataTemplate DataType="{x:Type local:LoopUntilFinishedFromPhoneCondition}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <TextBlock Text="Ends when you tap &quot;Finish night&quot; in the app" VerticalAlignment="Center" Opacity="0.8" />
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+    <DataTemplate x:Key="NightManager.Plugin.Sequencer.LoopUntilFinishedFromPhoneCondition_Mini">
+        <mini:MiniCondition />
+    </DataTemplate>
+</ResourceDictionary>

@@ -1,0 +1,42 @@
+<Project>
+  <!--
+    NinaTarget selects the NINA host baseline:
+      3.2 (default) = current stable NINA 3.2.x on .NET 8
+      3.3           = NINA 3.3 nightlies on .NET 10 (adds 3.3-only features via the NINA33 symbol)
+    Build both for release: dotnet build -p:NinaTarget=3.2 / -p:NinaTarget=3.3
+    NmChannel picks the server: live (default) = the public testers' server; dev = the developers' dev server
+    (-p:NmChannel=dev, or tools/build-plugin.sh dev). Each channel builds into its own folders.
+  -->
+  <PropertyGroup>
+    <NinaTarget Condition="'$(NinaTarget)' == ''">3.2</NinaTarget>
+    <NmChannel Condition="'$(NmChannel)' == ''">live</NmChannel>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- Both NinaTarget build trees live side by side; never compile one tree's generated files into the other. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NinaTarget)' == '3.2'">
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <NinaPackageVersion>3.2.0.9001</NinaPackageVersion>
+    <MinimumNinaVersion>3.2.0.9001</MinimumNinaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NinaTarget)' == '3.3'">
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <NinaPackageVersion>3.3.0.1060-nightly</NinaPackageVersion>
+    <MinimumNinaVersion>3.3.0.1060</MinimumNinaVersion>
+    <DefineConstants>$(DefineConstants);NINA33</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(NmChannel)' == 'dev'">
+    <DefineConstants>$(DefineConstants);NM_DEV_CHANNEL</DefineConstants>
+    <NmOutputSuffix>-dev</NmOutputSuffix>
+  </PropertyGroup>
+  <!-- Separate outputs so both baselines (and both channels) can be built side by side. -->
+  <PropertyGroup>
+    <BaseOutputPath>bin/nina$(NinaTarget)$(NmOutputSuffix)/</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj/nina$(NinaTarget)$(NmOutputSuffix)/</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>
